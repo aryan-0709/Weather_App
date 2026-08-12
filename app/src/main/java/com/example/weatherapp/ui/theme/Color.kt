@@ -13,3 +13,5 @@ val Pink40 = Color(0xFF7D5260)
 val BackGround = Color(0xFFF4F4FD)
 val Surface = Color(0xFFFDFDFD)
 val Header = Color(0xFFEBE7F6)
+
+val TextColor = Color(0xFF101010)
