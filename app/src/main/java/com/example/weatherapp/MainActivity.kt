@@ -12,6 +12,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.example.weatherapp.remote.Retrofit_Instance
+import com.example.weatherapp.remote.weatherApi
+import com.example.weatherapp.repository.WeatherRepository
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 import com.example.weatherapp.ui.theme.screens.HomeScreen
 import kotlinx.coroutines.launch
@@ -21,6 +23,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val repository= WeatherRepository (
+            WeatherApi = Retrofit_Instance.api
+        )
+
         setContent {
             WeatherAppTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background)
@@ -31,8 +37,8 @@ class MainActivity : ComponentActivity() {
                 lifecycleScope.launch {
 
                     try {
-                        val response = Retrofit_Instance.api.getCurrentWeather(
-                            apiKey = "ec2abd820f5b4bd4a9170451261309",
+                        val response = repository.getweather(
+                        apikey = "ec2abd820f5b4bd4a9170451261309",
                             city = "Delhi"
                         )
 
