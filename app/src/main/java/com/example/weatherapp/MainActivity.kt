@@ -9,13 +9,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.weatherapp.remote.Retrofit_Instance
 import com.example.weatherapp.remote.weatherApi
 import com.example.weatherapp.repository.WeatherRepository
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 import com.example.weatherapp.ui.theme.screens.HomeScreen
+import com.example.weatherapp.viewmodel.WeatherViewModel
+import com.example.weatherapp.viewmodel.WeatherViewModelFactory
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -27,29 +34,27 @@ class MainActivity : ComponentActivity() {
             WeatherApi = Retrofit_Instance.api
         )
 
+        val factor= WeatherViewModelFactory(repository)
+        val viewModel = ViewModelProvider(this,factor) [WeatherViewModel::class.java]
+
+        viewModel.loadWeather(apiKey = "ec2abd820f5b4bd4a9170451261309", city = "Delhi")
+
         setContent {
             WeatherAppTheme {
+                val uiState by viewModel.uiState.collectAsState()
+
+                LaunchedEffect(uiState) {
+                    Log.d(
+                        "WeatherUI",
+                        "Loading=${uiState.isLoading}, City=${uiState.weather?.location?.name}, Error=${uiState.errorMessage}"
+                    )
+                }
+
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background)
                 {
-                    HomeScreen()
+                    HomeScreen(uiState=uiState)
                 }
 
-                lifecycleScope.launch {
-
-                    try {
-                        val response = repository.getweather(
-                        apikey = "ec2abd820f5b4bd4a9170451261309",
-                            city = "Delhi"
-                        )
-
-                        Log.d("WEATHER_TEST", "City: ${response.location.name}")
-                        Log.d("WEATHER_TEST", "Temperature: ${response.current.tempC}")
-                        Log.d("WEATHER_TEST", "Condition: ${response.current.condition.text}")
-
-                    } catch (e: Exception) {
-                        Log.e("WEATHER_TEST", "Error: ${e.message}")
-                    }
-                }
 
 
             }
