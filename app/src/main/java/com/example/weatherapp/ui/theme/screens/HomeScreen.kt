@@ -49,11 +49,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weatherapp.uistate.WeatherUiState
 
 
 @Composable
 
-fun HomeScreen()
+fun HomeScreen(uiState: WeatherUiState)
 {
 
     var searchText by remember { mutableStateOf("") }
@@ -134,11 +135,18 @@ paddingValues ->
                         ) {
                             // City Name with Location Arrow
                             Text(
-                                text = "Faridabad, India \u27A4",
+                                text = "${uiState.weather?.location?.name?:"Loading..."}, India \u27A4",
                                 color = MaterialTheme.colorScheme.onBackground,
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
+                            if (uiState.errorMessage != null) {
+                                Text(
+                                    text = uiState.errorMessage!!,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+
 
                             // Updated Status with a small Dot
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -166,7 +174,7 @@ paddingValues ->
 
                             // LARGE TEMPERATURE
                             Text(
-                                text = "28°", // Added degree symbol
+                                text = "${uiState.weather?.current?.tempC?: "--"}°", // Added degree symbol
                                 color = MaterialTheme.colorScheme.onBackground,
                                 style = MaterialTheme.typography.displayLarge,
                                 fontSize = 80.sp,
@@ -174,7 +182,7 @@ paddingValues ->
                             )
 
                             Text(
-                                text = "Partly Cloudy",
+                                text = uiState.weather?.current?.condition ?.text ?: "Loading...",
                                 color = MaterialTheme.colorScheme.onBackground,
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.SemiBold
@@ -261,9 +269,9 @@ paddingValues ->
         }
     }
 }
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview()
-{
-    HomeScreen()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun HomeScreenPreview()
+//{
+//    HomeScreen(uiState = WeatherUiState())
+//}
