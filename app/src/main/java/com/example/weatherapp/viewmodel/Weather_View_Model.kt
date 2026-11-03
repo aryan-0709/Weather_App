@@ -1,9 +1,66 @@
 package com.example.weatherapp.viewmodel
 
-import com.example.weatherapp.remote.Retrofit_Instance
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.weatherapp.repository.WeatherRepository
+import com.example.weatherapp.uistate.WeatherUiState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class Weather_View_Model: WeatherRepository(
-    WeatherApi = Retrofit_Instance.api
-)
+class WeatherViewModel (
+    private val repository: WeatherRepository): ViewModel() {
+
+    private val _uiState = MutableStateFlow(WeatherUiState())
+
+    val uiState: StateFlow<WeatherUiState> =_uiState.asStateFlow()
+
+
+fun loadWeather(apiKey: String, city: String) {
+    viewModelScope.launch {
+        _uiState.value = WeatherUiState(
+            isLoading = true,
+            weather = _uiState.value.weather,
+            errorMessage = null
+        )
+
+        try {
+            val response= repository.getweather(apiKey,city)
+            _uiState.value= WeatherUiState(
+                isLoading = false,
+                weather = response,
+                errorMessage = null
+            )
+
+            Log.d("WeatherDebug", "API request successful: ${response.location.name}")
+
+            _uiState.value = WeatherUiState(
+                isLoading = false,
+                weather = response,
+                errorMessage = null
+            )
+
+        } catch (e: Exception)
+        {
+            _uiState.value= WeatherUiState(
+                isLoading = false,
+                weather = _uiState.value.weather,
+                errorMessage = e.message ?: "Something went wrong"
+            )
+
+            Log.e("WeatherDebug", "API request failed", e)
+
+            _uiState.value = WeatherUiState(
+                isLoading = false,
+                weather = _uiState.value.weather,
+                errorMessage = e.message ?: "Something went wrong"
+            )
+        }
+
+    }
+}
+
+}
 
