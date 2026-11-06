@@ -57,7 +57,7 @@ import com.example.weatherapp.uistate.WeatherUiState
 fun HomeScreen(uiState: WeatherUiState)
 {
 
-    var searchText by remember { mutableStateOf("") }
+
 
     Scaffold(modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background)
@@ -81,9 +81,10 @@ paddingValues ->
                 verticalAlignment = Alignment.CenterVertically
             )
             {
+                var searchCity by remember { mutableStateOf("") }
                 OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
+                    value = searchCity,
+                    onValueChange = { searchCity = it },
                     modifier = Modifier.weight(1f),
                     placeholder = { Text(text = "Enter City") },
                     leadingIcon =
