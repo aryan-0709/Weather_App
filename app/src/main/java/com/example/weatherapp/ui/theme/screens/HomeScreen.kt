@@ -1,5 +1,7 @@
 package com.example.weatherapp.ui.theme.screens
 
+import android.icu.text.StringSearch
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -19,6 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -27,6 +31,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,9 +60,10 @@ import com.example.weatherapp.uistate.WeatherUiState
 
 @Composable
 
-fun HomeScreen(uiState: WeatherUiState)
+fun HomeScreen(uiState: WeatherUiState,
+               onSearch: (String)-> Unit
+)
 {
-
 
 
     Scaffold(modifier = Modifier.fillMaxSize(),
@@ -87,6 +94,13 @@ paddingValues ->
                     onValueChange = { searchCity = it },
                     modifier = Modifier.weight(1f),
                     placeholder = { Text(text = "Enter City") },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Search
+                    ),
+
+                    keyboardActions = KeyboardActions(
+                        onSearch ={onSearch(searchCity.trim())}
+                    ),
                     leadingIcon =
                         {
                             Icon(Icons.Default.Search, contentDescription = "null")
@@ -141,13 +155,12 @@ paddingValues ->
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
-                            if (uiState.errorMessage != null) {
-                                Text(
-                                    text = uiState.errorMessage!!,
-                                    color = MaterialTheme.colorScheme.error
+
+                            uiState.errorMessage?. let{error->
+                                Text(text = error,
+                                    color = MaterialTheme.colorScheme.error // error handling
                                 )
                             }
-
 
                             // Updated Status with a small Dot
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -172,6 +185,15 @@ paddingValues ->
                                 color = MaterialTheme.colorScheme.onBackground,
                                 style = MaterialTheme.typography.titleMedium
                             )
+
+                            if(uiState.isLoading)
+                            {
+                                CircularProgressIndicator()    // Loading indicator
+                            }
+
+
+
+
 
                             // LARGE TEMPERATURE
                             Text(
@@ -210,7 +232,7 @@ paddingValues ->
                                 contentDescription = "Weather Illustration",
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                  .aspectRatio(1f), // Keeps it perfectly square/circular
+                                    .aspectRatio(1f), // Keeps it perfectly square/circular
                                 contentScale = ContentScale.Fit
                             )
                         }
@@ -218,11 +240,14 @@ paddingValues ->
                     Spacer(modifier = Modifier.height(22.dp))
 
 
-                    Card(modifier = Modifier.width(155.dp).height(56.dp),
+                    Card(modifier = Modifier
+                        .width(155.dp)
+                        .height(56.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp))
                     {
-                        Row(modifier = Modifier.fillMaxSize()
+                        Row(modifier = Modifier
+                            .fillMaxSize()
                             .padding(horizontal = 12.dp),
                             verticalAlignment = Alignment.CenterVertically)
                         {
@@ -239,7 +264,8 @@ paddingValues ->
                                 fontWeight = FontWeight.Bold)
 
 
-                            VerticalDivider(modifier = Modifier.padding(start = 16.dp, end = 8.dp)
+                            VerticalDivider(modifier = Modifier
+                                .padding(start = 16.dp, end = 8.dp)
                                 .fillMaxHeight(0.6f),
                                 thickness = 1.dp,
                                 color = Color.LightGray.copy(alpha = 0.6f))
@@ -269,6 +295,11 @@ paddingValues ->
             }
         }
     }
+}
+
+fun searchcity(city: String)
+{
+    Log.d("Weather Search", " Search city= $city")
 }
 //@Preview(showBackground = true)
 //@Composable
