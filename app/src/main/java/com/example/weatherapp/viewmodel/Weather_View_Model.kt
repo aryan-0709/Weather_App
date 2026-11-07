@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.annotation.meta.When
 
 class WeatherViewModel (
     private val repository: WeatherRepository): ViewModel() {
@@ -28,11 +29,6 @@ fun loadWeather(apiKey: String, city: String) {
 
         try {
             val response= repository.getweather(apiKey,city)
-            _uiState.value= WeatherUiState(
-                isLoading = false,
-                weather = response,
-                errorMessage = null
-            )
 
             Log.d("WeatherDebug", "API request successful: ${response.location.name}")
 
@@ -42,21 +38,27 @@ fun loadWeather(apiKey: String, city: String) {
                 errorMessage = null
             )
 
-        } catch (e: Exception)
-        {
-            _uiState.value= WeatherUiState(
-                isLoading = false,
-                weather = _uiState.value.weather,
-                errorMessage = e.message ?: "Something went wrong"
-            )
+        } catch (e: Exception) {
 
+            val errorMessage = when {
+                e is retrofit2.HttpException && e.code() == 400 ->
+                    "City not found. Please check city name."
+
+                e is retrofit2.HttpException && e.code() == 401 ->
+                    "Invalid Api Key"
+
+
+                else ->
+                    "Something went wrong. Please try again."
+            }
             Log.e("WeatherDebug", "API request failed", e)
 
             _uiState.value = WeatherUiState(
                 isLoading = false,
                 weather = _uiState.value.weather,
-                errorMessage = e.message ?: "Something went wrong"
+                errorMessage = errorMessage
             )
+
         }
 
     }
