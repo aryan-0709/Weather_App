@@ -14,16 +14,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.weatherapp.remote.Retrofit_Instance
-import com.example.weatherapp.remote.weatherApi
 import com.example.weatherapp.repository.WeatherRepository
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 import com.example.weatherapp.ui.theme.screens.HomeScreen
 import com.example.weatherapp.viewmodel.WeatherViewModel
 import com.example.weatherapp.viewmodel.WeatherViewModelFactory
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("CoroutineCreationDuringComposition")
@@ -36,8 +32,8 @@ class MainActivity : ComponentActivity() {
 
         val factor= WeatherViewModelFactory(repository)
         val viewModel = ViewModelProvider(this,factor) [WeatherViewModel::class.java]
-
-        viewModel.loadWeather(apiKey = "ec2abd820f5b4bd4a9170451261309", city = "Delhi")
+        val apiKey ="ec2abd820f5b4bd4a9170451261309"
+        viewModel.loadWeather(apiKey = apiKey, city = "Delhi")
 
         setContent {
             WeatherAppTheme {
@@ -52,7 +48,14 @@ class MainActivity : ComponentActivity() {
 
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background)
                 {
-                    HomeScreen(uiState=uiState)
+                    HomeScreen(uiState=uiState,
+                        onSearch ={city->
+                            viewModel.loadWeather(
+                                apiKey =apiKey ,
+                                city =city
+                            )
+                        }
+                    )
                 }
 
 
