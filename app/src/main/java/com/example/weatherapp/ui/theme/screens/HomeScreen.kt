@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -144,81 +145,86 @@ paddingValues ->
                             .padding(top = 8.dp),
                         verticalAlignment = Alignment.Top
                         ) {
-                        // 2. LEFT COLUMN: Holds all text info
-                        Column(
-                            modifier = Modifier.weight(1.1f) // Takes up slightly more than half
-                        ) {
-                            // City Name with Location Arrow
-                            Text(
-                                text = "${uiState.weather?.location?.name?:"Loading..."}, India \u27A4",
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            // 2. LEFT COLUMN: Holds all text info
 
-                            uiState.errorMessage?. let{error->
-                                Text(text = error,
-                                    color = MaterialTheme.colorScheme.error // error handling
-                                )
-                            }
-
-                            // Updated Status with a small Dot
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                // Small Circle Dot
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .background(Color(0xFF8A84FF), shape = CircleShape)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Updated just now",
-                                    color = Color.Gray,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(32.dp))
-
-                            Text(
-                                text = "Good Morning! \uD83D\uDC4B",
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-
-                            if(uiState.isLoading)
+                            if (uiState.isLoading)
                             {
-                                CircularProgressIndicator()    // Loading indicator
+                                WeatherSkeleton()
+                            } else{
+
+                            Column(
+                                modifier = Modifier.weight(1.1f) // Takes up slightly more than half
+                            ) {
+                                // City Name with Location Arrow
+                                Text(
+                                    text = "${uiState.weather?.location?.name ?: "Loading..."}, India \u27A4",
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+
+                                uiState.errorMessage?.let { error ->
+                                    Text(
+                                        text = error,
+                                        color = MaterialTheme.colorScheme.error // error handling
+                                    )
+                                }
+
+                                // Updated Status with a small Dot
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    // Small Circle Dot
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .background(Color(0xFF8A84FF), shape = CircleShape)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Updated just now",
+                                        color = Color.Gray,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(32.dp))
+
+                                Text(
+                                    text = "Good Morning! \uD83D\uDC4B",
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+
+                                if (uiState.isLoading) {
+                                    CircularProgressIndicator()    // Loading indicator
+                                }
+
+
+                                // LARGE TEMPERATURE
+                                Text(
+                                    text = "${uiState.weather?.current?.tempC ?: "--"}°", // Added degree symbol
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.displayLarge,
+                                    fontSize = 80.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+
+                                Text(
+                                    text = uiState.weather?.current?.condition?.text
+                                        ?: "Loading...",
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text(
+                                    text = "Sun behind the clouds.\nPleasant and warm.",
+                                    color = Color.Gray,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    lineHeight = 20.sp
+                                )
                             }
-
-
-
-
-
-                            // LARGE TEMPERATURE
-                            Text(
-                                text = "${uiState.weather?.current?.tempC?: "--"}°", // Added degree symbol
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.displayLarge,
-                                fontSize = 80.sp,
-                                fontWeight = FontWeight.ExtraBold
-                            )
-
-                            Text(
-                                text = uiState.weather?.current?.condition ?.text ?: "Loading...",
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.SemiBold
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Text(
-                                text = "Sun behind the clouds.\nPleasant and warm.",
-                                color = Color.Gray,
-                                style = MaterialTheme.typography.bodyMedium,
-                                lineHeight = 20.sp
-                            )
                         }
 
                         // 3. RIGHT SIDE: Large Image
@@ -307,3 +313,67 @@ fun searchcity(city: String)
 //{
 //    HomeScreen(uiState = WeatherUiState())
 //}
+
+
+@Composable
+fun SkeletonBox(modifier: Modifier= Modifier,
+                shape: RoundedCornerShape=RoundedCornerShape(8.dp)
+)
+{
+    Box(modifier=modifier.background(color = Color.LightGray.copy(alpha = 0.5f),
+        shape = shape
+    )
+    )
+
+}
+
+@Composable
+fun WeatherSkeleton()
+{
+    Column()
+    {
+
+
+//City name placeholder
+        SkeletonBox(modifier = Modifier
+            .width(150.dp)
+            .height(25.dp)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+//Updated status placeholder
+
+
+        SkeletonBox(modifier = Modifier
+            .width(100.dp)
+            .height(12.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+// Greeting placeholder
+
+        SkeletonBox(modifier = Modifier
+            .width(130.dp)
+            .height(18.dp)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+
+// Temperature Placeholder
+        SkeletonBox(modifier = Modifier
+            .width(150.dp)
+            .height(85.dp)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+
+// Weather condition placeholder
+            SkeletonBox(modifier = Modifier
+            .width(120.dp)
+            .height(22.dp)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+
+
+    }
+}
