@@ -1,7 +1,14 @@
 package com.example.weatherapp.ui.theme.screens
 
 import android.icu.text.StringSearch
+import android.os.Message
 import android.util.Log
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -29,6 +36,8 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +56,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
@@ -56,6 +68,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weatherapp.R
+import com.example.weatherapp.model.getWeatherDescription
+import com.example.weatherapp.model.getWeatherIcons
 import com.example.weatherapp.uistate.WeatherUiState
 
 
@@ -65,6 +80,8 @@ fun HomeScreen(uiState: WeatherUiState,
                onSearch: (String)-> Unit
 )
 {
+
+    var searchCity by remember { mutableStateOf("") }
 
 
     Scaffold(modifier = Modifier.fillMaxSize(),
@@ -89,7 +106,7 @@ paddingValues ->
                 verticalAlignment = Alignment.CenterVertically
             )
             {
-                var searchCity by remember { mutableStateOf("") }
+
                 OutlinedTextField(
                     value = searchCity,
                     onValueChange = { searchCity = it },
@@ -163,10 +180,13 @@ paddingValues ->
                                     fontWeight = FontWeight.SemiBold
                                 )
 
-                                uiState.errorMessage?.let { error ->
-                                    Text(
-                                        text = error,
-                                        color = MaterialTheme.colorScheme.error // error handling
+                                if (uiState.errorMessage != null) {
+
+                                    WeatherError(
+                                        errorMessage = uiState.errorMessage,
+                                        onRetry = {
+                                            onSearch(searchCity.trim())
+                                        }
                                     )
                                 }
 
@@ -219,7 +239,9 @@ paddingValues ->
                                 Spacer(modifier = Modifier.height(8.dp))
 
                                 Text(
-                                    text = "Sun behind the clouds.\nPleasant and warm.",
+                                    text = uiState.weather?.current?.condition?.code
+                                        ?.let { getWeatherDescription(it) }
+                                        ?:"Checking Weather Conditions...",
                                     color = Color.Gray,
                                     style = MaterialTheme.typography.bodyMedium,
                                     lineHeight = 20.sp
@@ -234,8 +256,11 @@ paddingValues ->
                                 .align(Alignment.CenterVertically)
                         ) {
                             Image(
-                                painter = painterResource(id = com.example.weatherapp.R.drawable.headder_image),
-                                contentDescription = "Weather Illustration",
+                                painter = painterResource(id = uiState.weather?.current?.condition?.code
+                                    ?.let { getWeatherIcons(it) }
+                                    ?:R.drawable.cloudy_weather
+                                ),
+                                contentDescription = "Current Weather ",
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(1f), // Keeps it perfectly square/circular
@@ -320,10 +345,13 @@ fun SkeletonBox(modifier: Modifier= Modifier,
                 shape: RoundedCornerShape=RoundedCornerShape(8.dp)
 )
 {
-    Box(modifier=modifier.background(color = Color.LightGray.copy(alpha = 0.5f),
+    val shimmerBrush=rememberShimmerBrush()
+
+    Box(modifier=modifier.background(brush = shimmerBrush,
         shape = shape
     )
     )
+
 
 }
 
@@ -376,4 +404,74 @@ fun WeatherSkeleton()
 
 
     }
+}
+
+@Composable
+fun rememberShimmerBrush(): Brush {
+
+    val transition = rememberInfiniteTransition(
+        label = "Shimmer"
+    )
+
+    val translateAnimation by transition.animateFloat(
+        initialValue = -300f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1200,
+                easing = LinearEasing
+            ),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "Shimmer Animation"
+    )
+
+    return Brush.linearGradient(
+        colors = listOf(
+            Color.LightGray.copy(alpha = 0.5f),
+            Color.White.copy(alpha = 0.9f),
+            Color.LightGray.copy(alpha = 0.5f)
+        ),
+        start = Offset(translateAnimation, translateAnimation),
+        end = Offset(
+            translateAnimation + 200f,
+            translateAnimation + 200f
+        )
+    )
+}
+
+
+@Composable
+fun WeatherError(errorMessage: String,
+                  onRetry:()-> Unit
+)
+{
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally)
+    {
+
+        Icon(imageVector = Icons.Default.Warning,
+            contentDescription = "Weather error"
+            , modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(text = "Unable to fetch weather",
+            style= MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Text(text = errorMessage, color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = onRetry)
+        {
+            Text("Try Again")
+        }
+
+    }
+
+
 }
