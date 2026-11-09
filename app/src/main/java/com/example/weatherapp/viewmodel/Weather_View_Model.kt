@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okio.IOException
 import javax.annotation.meta.When
 
 class WeatherViewModel (
@@ -46,6 +47,9 @@ fun loadWeather(apiKey: String, city: String) {
 
                 e is retrofit2.HttpException && e.code() == 401 ->
                     "Invalid Api Key"
+
+                e is IOException ->
+                    "Network error. Please check your internet connection."
 
 
                 else ->
