@@ -1,6 +1,5 @@
 package com.example.weatherapp
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -22,17 +21,18 @@ import com.example.weatherapp.viewmodel.WeatherViewModel
 import com.example.weatherapp.viewmodel.WeatherViewModelFactory
 
 class MainActivity : ComponentActivity() {
-    @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val repository= WeatherRepository (
+
+        val repository = WeatherRepository(
             WeatherApi = Retrofit_Instance.api
         )
 
-        val factor= WeatherViewModelFactory(repository)
-        val viewModel = ViewModelProvider(this,factor) [WeatherViewModel::class.java]
-        val apiKey ="ec2abd820f5b4bd4a9170451261309"
+        val factory = WeatherViewModelFactory(repository)
+        val viewModel = ViewModelProvider(this, factory)[WeatherViewModel::class.java]
+        val apiKey = BuildConfig.WEATHER_API_KEY
+
         viewModel.loadWeather(apiKey = apiKey, city = "Delhi")
 
         setContent {
@@ -46,24 +46,21 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background)
-                {
-                    HomeScreen(uiState=uiState,
-                        onSearch ={city->
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    HomeScreen(
+                        uiState = uiState,
+                        onSearch = { city ->
                             viewModel.loadWeather(
-                                apiKey =apiKey ,
-                                city =city
+                                apiKey = apiKey,
+                                city = city
                             )
                         }
                     )
                 }
-
-
-
             }
         }
     }
 }
-
-
-
