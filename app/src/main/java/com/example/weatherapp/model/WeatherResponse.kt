@@ -1,5 +1,7 @@
 package com.example.weatherapp.model
 
-data class WeatherResponse( val location: Location,
-    val current: Current
+data class WeatherResponse(
+    val location: Location,
+    val current: Current,
+    val forecast: Forecast? = null
 )
